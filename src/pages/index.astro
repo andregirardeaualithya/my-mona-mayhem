@@ -1,17 +1,452 @@
----
-
----
-
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Mona Mayhem</title>
+		<meta
+			name="description"
+			content="Compare GitHub contribution totals in the Mona Mayhem battle arena."
+		/>
+		<title>Mona Mayhem - GitHub Contribution Battle Arena</title>
 	</head>
 	<body>
-		<h1>Mona Mayhem</h1>
-		<p>Welcome to Mona Mayhem! Time to build a GitHub Contribution Battle Arena.</p>
+		<main class="arena">
+			<header>
+				<h1>Mona Mayhem</h1>
+				<p class="subtitle">GitHub Contribution Battle Arena</p>
+			</header>
+
+			<form id="battle-form" novalidate>
+				<div class="players">
+					<label>
+						Player 1
+						<input
+							id="player-1"
+							name="player1"
+							type="text"
+							autocomplete="off"
+							maxlength="39"
+							placeholder="GitHub username"
+							required
+						/>
+					</label>
+					<label>
+						Player 2
+						<input
+							id="player-2"
+							name="player2"
+							type="text"
+							autocomplete="off"
+							maxlength="39"
+							placeholder="GitHub username"
+							required
+						/>
+					</label>
+				</div>
+				<button id="battle-button" type="submit">Start battle</button>
+			</form>
+
+			<section class="results" aria-labelledby="results-title">
+				<h2 id="results-title">Battle results</h2>
+				<p id="result-message" role="status" aria-live="polite">
+					Enter two GitHub usernames to begin.
+				</p>
+				<div id="battle-layout" class="battle-layout" hidden>
+					<article class="player-card">
+						<h3 id="player-1-name"></h3>
+						<p><strong id="player-1-score"></strong> contributions</p>
+						<p class="date-range" id="player-1-range"></p>
+						<div class="graph-scroll">
+							<div id="player-1-graph" class="contribution-grid" role="img"></div>
+						</div>
+					</article>
+					<div class="vs-badge" aria-label="versus">VS</div>
+					<article class="player-card">
+						<h3 id="player-2-name"></h3>
+						<p><strong id="player-2-score"></strong> contributions</p>
+						<p class="date-range" id="player-2-range"></p>
+						<div class="graph-scroll">
+							<div id="player-2-graph" class="contribution-grid" role="img"></div>
+						</div>
+					</article>
+				</div>
+			</section>
+		</main>
 	</body>
 </html>
+
+<style>
+	:root {
+		font-family: Arial, sans-serif;
+		color: #211b2b;
+		background: #f5f2f8;
+	}
+
+	body {
+		margin: 0;
+		min-width: 320px;
+	}
+
+	.arena {
+		box-sizing: border-box;
+		width: min(100% - 2rem, 42rem);
+		margin: 4rem auto;
+		padding: 2rem;
+		background: #fff;
+		border: 1px solid #ded7e8;
+		border-radius: 0.75rem;
+	}
+
+	header {
+		margin-bottom: 2rem;
+		text-align: center;
+	}
+
+	h1,
+	h2,
+	p {
+		margin-top: 0;
+	}
+
+	h1 {
+		margin-bottom: 0.25rem;
+	}
+
+	.subtitle {
+		margin-bottom: 0;
+		color: #625a6d;
+	}
+
+	.players {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin-bottom: 1.25rem;
+	}
+
+	label {
+		display: grid;
+		gap: 0.5rem;
+		font-weight: 600;
+	}
+
+	input {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 0.75rem;
+		border: 1px solid #aaa1b5;
+		border-radius: 0.375rem;
+		font: inherit;
+	}
+
+	button {
+		padding: 0.75rem 1.25rem;
+		border: 0;
+		border-radius: 0.375rem;
+		background: #6337a5;
+		color: #fff;
+		font: inherit;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	button:disabled {
+		cursor: wait;
+		opacity: 0.7;
+	}
+
+	.results {
+		margin-top: 2rem;
+		padding: 1.25rem;
+		border: 1px solid #ded7e8;
+		border-radius: 0.5rem;
+	}
+
+	.results h2 {
+		font-size: 1.125rem;
+	}
+
+	.battle-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.player-card {
+		min-width: 0;
+		padding: 1rem;
+		border: 1px solid #ded7e8;
+		border-radius: 0.5rem;
+	}
+
+	.player-card h3 {
+		margin: 0 0 0.5rem;
+		overflow-wrap: anywhere;
+	}
+
+	.player-card p {
+		margin-bottom: 0.5rem;
+	}
+
+	.player-card .date-range {
+		color: #625a6d;
+		font-size: 0.875rem;
+	}
+
+	.vs-badge {
+		display: grid;
+		width: 2.5rem;
+		height: 2.5rem;
+		place-items: center;
+		border-radius: 50%;
+		background: #6337a5;
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+
+	.graph-scroll {
+		overflow-x: auto;
+		padding-bottom: 0.25rem;
+	}
+
+	.contribution-grid {
+		display: grid;
+		grid-auto-columns: 0.65rem;
+		grid-template-rows: repeat(7, 0.65rem);
+		gap: 0.2rem;
+		width: max-content;
+	}
+
+	.contribution-grid span {
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 2px;
+	}
+
+	[hidden] {
+		display: none;
+	}
+
+	@media (max-width: 34rem) {
+		.arena {
+			margin: 1.5rem auto;
+			padding: 1.25rem;
+		}
+
+		.players {
+			grid-template-columns: 1fr;
+		}
+
+		.battle-layout {
+			grid-template-columns: 1fr;
+		}
+
+		.vs-badge {
+			justify-self: center;
+		}
+	}
+</style>
+
+<script>
+	interface ContributionDay {
+		weekday: number;
+		count: number;
+		level: number;
+	}
+
+	interface ContributionWeek {
+		index: number;
+		first_day: string;
+		contribution_days: ContributionDay[];
+	}
+
+	interface ContributionData {
+		schema: string;
+		from: string;
+		to: string;
+		range_days: number;
+		total_contributions: number;
+		private_contributions_included: boolean;
+		colors_full: string[];
+		weeks: ContributionWeek[];
+	}
+
+	const isRecord = (value: unknown): value is Record<string, unknown> =>
+		typeof value === 'object' && value !== null;
+
+	const form = document.querySelector<HTMLFormElement>('#battle-form');
+	const player1Input = document.querySelector<HTMLInputElement>('#player-1');
+	const player2Input = document.querySelector<HTMLInputElement>('#player-2');
+	const battleButton = document.querySelector<HTMLButtonElement>('#battle-button');
+	const resultMessage = document.querySelector<HTMLParagraphElement>('#result-message');
+	const battleLayout = document.querySelector<HTMLDivElement>('#battle-layout');
+
+	if (
+		!form ||
+		!player1Input ||
+		!player2Input ||
+		!battleButton ||
+		!resultMessage ||
+		!battleLayout
+	) {
+		throw new Error('The battle page is missing required elements.');
+	}
+
+	const isDate = (value: unknown): value is string =>
+		typeof value === 'string' &&
+		/^\d{4}-\d{2}-\d{2}$/.test(value) &&
+		!Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+
+	const isContributionDay = (value: unknown): value is ContributionDay =>
+		isRecord(value) &&
+		typeof value.weekday === 'number' &&
+		Number.isInteger(value.weekday) &&
+		value.weekday >= 0 &&
+		value.weekday <= 6 &&
+		typeof value.count === 'number' &&
+		Number.isFinite(value.count) &&
+		value.count >= 0 &&
+		typeof value.level === 'number' &&
+		Number.isInteger(value.level) &&
+		value.level >= 0;
+
+	const isStringArray = (value: unknown): value is string[] =>
+		Array.isArray(value) &&
+		value.every((color) => typeof color === 'string' && /^#[\da-f]{6}$/i.test(color));
+
+	const isContributionWeek = (
+		value: unknown,
+		colorCount: number,
+	): value is ContributionWeek =>
+		isRecord(value) &&
+		typeof value.index === 'number' &&
+		Number.isInteger(value.index) &&
+		isDate(value.first_day) &&
+		Array.isArray(value.contribution_days) &&
+		value.contribution_days.every(
+			(day) => isContributionDay(day) && day.level < colorCount,
+		);
+
+	const isContributionData = (value: unknown): value is ContributionData =>
+		isRecord(value) &&
+		typeof value.schema === 'string' &&
+		isDate(value.from) &&
+		isDate(value.to) &&
+		typeof value.range_days === 'number' &&
+		Number.isInteger(value.range_days) &&
+		value.range_days > 0 &&
+		typeof value.total_contributions === 'number' &&
+		Number.isFinite(value.total_contributions) &&
+		value.total_contributions >= 0 &&
+		typeof value.private_contributions_included === 'boolean' &&
+		isStringArray(value.colors_full) &&
+		value.colors_full.length > 0 &&
+		Array.isArray(value.weeks) &&
+		value.weeks.every((week) => isContributionWeek(week, value.colors_full.length));
+
+	const fetchContributions = async (username: string): Promise<ContributionData> => {
+		const response = await fetch(`/api/contributions/${encodeURIComponent(username)}`);
+		let data: unknown;
+
+		try {
+			data = await response.json();
+		} catch {
+			throw new Error('The contribution service returned an invalid response.');
+		}
+
+		if (!response.ok) {
+			const message =
+				data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+					? data.error
+					: 'Unable to load contributions.';
+			throw new Error(message);
+		}
+
+		if (!isContributionData(data)) {
+			throw new Error('The contribution service returned unexpected data.');
+		}
+
+		return data;
+	};
+
+	const formatDate = (date: string): string =>
+		new Intl.DateTimeFormat(undefined, {
+			dateStyle: 'medium',
+			timeZone: 'UTC',
+		}).format(new Date(`${date}T00:00:00Z`));
+
+	const renderPlayer = (player: 1 | 2, username: string, data: ContributionData): void => {
+		const name = document.querySelector<HTMLElement>(`#player-${player}-name`);
+		const score = document.querySelector<HTMLElement>(`#player-${player}-score`);
+		const range = document.querySelector<HTMLElement>(`#player-${player}-range`);
+		const graph = document.querySelector<HTMLDivElement>(`#player-${player}-graph`);
+
+		if (!name || !score || !range || !graph) {
+			throw new Error('The battle results are missing required elements.');
+		}
+
+		name.textContent = username;
+		score.textContent = data.total_contributions.toLocaleString();
+		range.textContent = `${formatDate(data.from)} – ${formatDate(data.to)}`;
+		graph.replaceChildren();
+		graph.setAttribute(
+			'aria-label',
+			`${username} contribution graph from ${data.from} to ${data.to}`,
+		);
+
+		for (const week of data.weeks) {
+			for (const day of week.contribution_days) {
+				const square = document.createElement('span');
+				const dayDate = new Date(`${week.first_day}T00:00:00Z`);
+				dayDate.setUTCDate(dayDate.getUTCDate() + day.weekday);
+				const date = dayDate.toISOString().slice(0, 10);
+
+				square.style.gridColumn = String(week.index + 1);
+				square.style.gridRow = String(day.weekday + 1);
+				square.style.backgroundColor = data.colors_full[day.level];
+				square.title = `${day.count} contributions on ${date}`;
+				square.setAttribute('aria-label', square.title);
+				graph.append(square);
+			}
+		}
+	};
+
+	form.addEventListener('submit', async (event) => {
+		event.preventDefault();
+
+		const player1 = player1Input.value.trim();
+		const player2 = player2Input.value.trim();
+
+		if (!player1 || !player2) {
+			resultMessage.textContent = 'Enter both GitHub usernames to start a battle.';
+			battleLayout.hidden = true;
+			return;
+		}
+
+		battleButton.disabled = true;
+		battleButton.textContent = 'Loading...';
+		resultMessage.textContent = 'Fetching contributions...';
+		battleLayout.hidden = true;
+
+		try {
+			const [player1Data, player2Data] = await Promise.all([
+				fetchContributions(player1),
+				fetchContributions(player2),
+			]);
+
+			renderPlayer(1, player1, player1Data);
+			renderPlayer(2, player2, player2Data);
+			battleLayout.hidden = false;
+			resultMessage.textContent = `${player1} vs ${player2}`;
+		} catch (error) {
+			resultMessage.textContent =
+				error instanceof Error ? error.message : 'Unable to complete the battle.';
+		} finally {
+			battleButton.disabled = false;
+			battleButton.textContent = 'Start battle';
+		}
+	});
+</script>
